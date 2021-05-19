@@ -24,11 +24,11 @@ func CountFreq(br io.ByteReader) (map[byte]uint, uint64) {
 	return freq, lenText
 }
 
-func Sort(freq *map[byte]uint){
-	type kv struct {
-		Key   byte
-		Value uint
-	}
+type kv struct {
+	Key   byte
+	Value uint
+}
+func Sort(freq *map[byte]uint) []kv{
 
 	var ss []kv
 	for k, v := range *freq {
@@ -38,11 +38,8 @@ func Sort(freq *map[byte]uint){
 	sort.Slice(ss, func(i, j int) bool {
 		return ss[i].Value > ss[j].Value
 	})
-	freq_res := make(map[byte]uint)
-	for i := range ss{
-		freq_res[ss[i].Key] = ss[i].Value
-	}
-	*freq = freq_res
+
+	return ss
 }
 
 type Table struct {
@@ -52,19 +49,12 @@ type Table struct {
 	b float64
 }
 
-func CreateTable(freq map[uint8]uint, lenText uint64) map[byte]*Table{
-	var table = make(map[byte]*Table)
+func CreateTable(freq []kv, lenText uint64) []Table{
+	var table []Table
 	var i float64
-	for key, value := range freq {
-		t := &Table{
-			s:  key,
-			amount: value,
-			a: float64(i),
-			b: i + float64(value)/float64(lenText),
-		}
-		i := i + float64(value)/float64(lenText)
-		fmt.Println(i)
-		table[key] = t
+	for idx := range freq {
+		table = append(table, Table{freq[idx].Key, freq[idx].Value, i, i + float64(freq[idx].Value)/float64(lenText)})
+		i += float64(freq[idx].Value)/float64(lenText)
 	}
 
 	return table
@@ -91,25 +81,21 @@ func main() {
 	log.Println("calculating length file and frequencies ")
 	r := bufio.NewReader(inFile)
 	freq, lenText := CountFreq(r)
-	fmt.Println(lenText)
 
 	//sort freq in less
 	log.Println("sort freq")
-	Sort(&freq)
-	for key, value := range freq{
-		fmt.Println(string(key))
-		fmt.Println(value)
-	}
+	var freq_ []kv
+	freq_ = Sort(&freq)
 
 	// Count AB for every symbol
 	log.Println("Create table")
-	table := CreateTable(freq, lenText)
+	table := CreateTable(freq_, lenText)
 
 	log.Println("print table")
 	for key := range table {
-		fmt.Println(string(key))
-		//fmt.Println(table[key].amount)
-		//fmt.Println(table[key].a)
-		//fmt.Println(table[key].b)
+		fmt.Println(string(table[key].s))
+		fmt.Println(table[key].amount)
+		fmt.Println(table[key].a)
+		fmt.Println(table[key].b)
 	}
 }
