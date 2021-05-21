@@ -4,31 +4,28 @@
 #include <map>
 #include <list>
 
-using namespace std;
-
 int h = 65535;
 int first_qtr = (h + 1) / 4, half = first_qtr * 2, third_qtr = first_qtr * 3, bits_to_follow = 0;   // в bits_to_follow сколько битов сбрасывать
 char temp = 0;
 
-struct Range{
+struct Table{
     char s;
     int numb;
     int lb;
     int rb;
 };
 
-struct Sort{;//сравнивает 2, если Sort=1 то левый меньше правого и если 0, то наоборот
-	bool operator() (Range l, Range r){
-		return l.numb > r.numb;
-	}
-};
+bool comp(Table l, Table r){
+    return l.numb > r.numb;
+}
 
-void bits_plus_follow(int bit, int &count, ofstream &g){    //процедура переноса найденных битов в файл
+//procedure for transferring the found bits to a file
+void bits_plus_follow(int bit, int &count, std::ofstream &res_file){
     if(bit == 0){
         count++;
         if(count == 8){
             count = 0;
-            g << temp;
+            res_file << temp;
             temp = 0;
         }
         for(; bits_to_follow > 0; bits_to_follow--){
@@ -36,7 +33,7 @@ void bits_plus_follow(int bit, int &count, ofstream &g){    //процедура
             count++;
             if(count == 8){
                 count = 0;
-                g << temp;
+                res_file << temp;
                 temp = 0;
             }
         }
@@ -46,14 +43,14 @@ void bits_plus_follow(int bit, int &count, ofstream &g){    //процедура
         count++;
         if (count == 8) {
             count = 0;
-            g << temp;
+            res_file << temp;
             temp = 0;
         }
         for (; bits_to_follow > 0; bits_to_follow--) {
             count++;
             if (count == 8) {
                 count = 0;
-                g << temp;
+                res_file << temp;
                 temp = 0;
             }
         }
@@ -61,59 +58,75 @@ void bits_plus_follow(int bit, int &count, ofstream &g){    //процедура
 }
 
 int main(){
-    int count = 0;//будем считать кол-во символов в тексте в общем, чтобы высчитывать вероятность символов
-    ifstream f("input.txt", ios::out | ios::binary);
-    ofstream g("output.txt", ios::out | ios::binary);
-    map <char, int> m;//создаём мапу с символами и сооветствующими кол-вами повторений
-    map <char, int> ::iterator ii;
-    list<Range> L;
-    while(!f.eof()){
-        char c = f.get();
-        m[c]++;
-        count++;
+    int n_symbols = 0;
+
+    // open files
+    std::ifstream file("code.txt", std::ios::out | std::ios::binary);
+    if (!file){
+        std::cerr << "Uh oh, Text.txt could not be opened for reading!" << '\n';
     }
-    for(ii = m.begin(); ii != m.end(); ii++){
-        Range p;
-        p.s = ii->first;
-        p.numb = ii->second;
-        L.push_back(p);
+    std::ofstream res_file("output.txt", std::ios::out | std::ios::binary);
+    if(!res_file){
+        std::cerr << "Uh oh, output.txt could not be opened for writing!" << '\n';
     }
-    L.sort(Sort());
-    L.begin()->rb = L.begin()->numb;
-    L.begin()->lb = 0;
-    list<Range>::iterator it = L.begin(), i2;
+
+    //count symbols in the text
+    std::map <char, int> frequencies;
+    std::map <char, int> ::iterator iterator;
+    while(!file.eof()){
+        char c = file.get();
+        frequencies[c]++;
+        n_symbols++;
+    }
+
+    //create table with intervals
+    std::list<Table> table;
+    for(iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
+        Table t;
+        t.s = iterator->first;
+        t.numb = iterator->second;
+        table.push_back(t);
+    }
+    table.sort(comp);
+    table.begin()->rb = table.begin()->numb;
+    table.begin()->lb = 0;
+    std::list<Table>::iterator it = table.begin(), i2;
     i2 = it;
     it++;
-    for(; it!=L.end(); it++){
+    for(; it != table.end(); it++){
         it->lb = i2->rb;
         it->rb = it->lb + it->numb;
         i2++;
     }
-    int ik=0;
-    for (ii = m.begin(); ii != m.end(); ii++){ //проходим по всей мапе и считаем сколько символов будет кодироваться(разных)
-		if (ii->second != 0){
-		    ik += 40;	  //добавляем к таблице 40 символов (сумма бит char и int)
+    
+    //get information about symbols
+    int count=0;
+    for (iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
+		if (iterator->second != 0){
+		    ++count;
 		}
     }
-	g.write((char*)(&ik), sizeof(ik));										//записываем информацию о разновидностях символов и их частот
+
+    // write header
+	res_file.write((char*)(&count), sizeof(count));
 	for (int k=0; k<256; k++){
-		if (m[char(k)] > 0){
+		if (frequencies[char(k)] > 0){
 			char c=char(k);
-			g.write((char*)(&c), sizeof(c));									//забивка символа
-			g.write((char*)(&m[char(k)]), sizeof(m[char(k)]));					//забивка значения символа
+			res_file.write((char*)(&c), sizeof(c));
+			res_file.write((char*)(&frequencies[char(k)]), sizeof(frequencies[char(k)]));
 		}
 	}
-    f.clear();
-	f.seekg(0);
+    file.clear();
+	file.seekg(0);
 
-    //int l = 0, h = 65535, idx = 0, denom = L.back().rb;
-    //int first_qtr = (h + 1) / 4, half = first_qtr * 2, third_qtr = first_qtr * 3, bits_to_follow = 0;   // в bits_to_follow сколько битов сбрасывать
-    int idx = 0, denom = L.back().rb, l = 0;
+	// start compress file
+    int idx = 0, denom = table.back().rb, l = 0;
     char temp = 0;
-    count = 0;
-    while(!f.eof()){
-        char c = f.get(); idx++;
-        for(it = L.begin(); it!=L.end(); it++){
+    n_symbols = 0;
+    
+    while(!file.eof()){
+        char c = file.get(); idx++;
+        for(it = table.begin(); it != table.end(); it++){
             if(c == it->s){
                 break;
             }
@@ -127,10 +140,10 @@ int main(){
         h = l2 + it->rb * (h - l2 + 1) / denom - 1;
         for(;;){    // обрабатываем варианты
             if(h < half){   //переполнение
-                bits_plus_follow(0, count, g);
+                bits_plus_follow(0, n_symbols, res_file);
             }
             else if(l >= half){
-                bits_plus_follow(1, count, g);
+                bits_plus_follow(1, n_symbols, res_file);
                 l -= half;
                 h -= half;
             }
@@ -146,8 +159,10 @@ int main(){
             h += h + 1;
         }
     }
-    g << temp;
-    f.close();
-    g.close();
+    res_file << temp;
+    
+    file.close();
+    res_file.close();
+    
     return 0;
 }
