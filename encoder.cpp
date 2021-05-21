@@ -19,13 +19,14 @@ bool comp(Table l, Table r){
     return l.numb > r.numb;
 }
 
+
 //procedure for transferring the found bits to a file
-void bits_plus_follow(int bit, int &count, std::ofstream &res_file){
+void bits_plus_follow(int bit, int &count, std::ofstream &g){
     if(bit == 0){
         count++;
         if(count == 8){
             count = 0;
-            res_file << temp;
+            g << temp;
             temp = 0;
         }
         for(; bits_to_follow > 0; bits_to_follow--){
@@ -33,7 +34,7 @@ void bits_plus_follow(int bit, int &count, std::ofstream &res_file){
             count++;
             if(count == 8){
                 count = 0;
-                res_file << temp;
+                g << temp;
                 temp = 0;
             }
         }
@@ -43,14 +44,14 @@ void bits_plus_follow(int bit, int &count, std::ofstream &res_file){
         count++;
         if (count == 8) {
             count = 0;
-            res_file << temp;
+            g << temp;
             temp = 0;
         }
         for (; bits_to_follow > 0; bits_to_follow--) {
             count++;
             if (count == 8) {
                 count = 0;
-                res_file << temp;
+                g << temp;
                 temp = 0;
             }
         }
@@ -61,9 +62,9 @@ int main(){
     int n_symbols = 0;
 
     // open files
-    std::ifstream file("code.txt", std::ios::out | std::ios::binary);
+    std::ifstream file("input.txt", std::ios::out | std::ios::binary);
     if (!file){
-        std::cerr << "Uh oh, Text.txt could not be opened for reading!" << '\n';
+        std::cerr << "Uh oh, input.txt could not be opened for reading!" << '\n';
     }
     std::ofstream res_file("output.txt", std::ios::out | std::ios::binary);
     if(!res_file){
@@ -80,30 +81,30 @@ int main(){
     }
 
     //create table with intervals
-    std::list<Table> table;
+    std::list<Table> L;
     for(iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
-        Table t;
-        t.s = iterator->first;
-        t.numb = iterator->second;
-        table.push_back(t);
+        Table p;
+        p.s = iterator->first;
+        p.numb = iterator->second;
+        L.push_back(p);
     }
-    table.sort(comp);
-    table.begin()->rb = table.begin()->numb;
-    table.begin()->lb = 0;
-    std::list<Table>::iterator it = table.begin(), i2;
+    L.sort(comp);
+    L.begin()->rb = L.begin()->numb;
+    L.begin()->lb = 0;
+    std::list<Table>::iterator it = L.begin(), i2;
     i2 = it;
     it++;
-    for(; it != table.end(); it++){
+    for(; it!=L.end(); it++){
         it->lb = i2->rb;
         it->rb = it->lb + it->numb;
         i2++;
     }
-    
+
     //get information about symbols
-    int count=0;
+    int count = 0;
     for (iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
 		if (iterator->second != 0){
-		    ++count;
+            count += 40;
 		}
     }
 
@@ -119,20 +120,20 @@ int main(){
     file.clear();
 	file.seekg(0);
 
-	// start compress file
-    int idx = 0, denom = table.back().rb, l = 0;
+    // start compress file
+    int idx = 0, denom = L.back().rb, l = 0;
     char temp = 0;
     n_symbols = 0;
-    
+
     while(!file.eof()){
         char c = file.get(); idx++;
-        for(it = table.begin(); it != table.end(); it++){
+        for(it = L.begin(); it!=L.end(); it++){
             if(c == it->s){
                 break;
             }
         }
         if(c != it->s){
-            std::cout << "Error!" << std::endl;
+            std::cout << "Error!" << '\n';
             break;
         }
         int l2 = l;
@@ -160,9 +161,8 @@ int main(){
         }
     }
     res_file << temp;
-    
+
     file.close();
     res_file.close();
-    
     return 0;
 }
