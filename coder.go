@@ -60,6 +60,30 @@ func CreateTable(freq []kv, lenText uint64) []Table{
 	return table
 }
 
+func FindIntervals(v byte,t []Table) (float64, float64){
+	var a, b float64
+
+	for key := range t {
+		if t[key].s == v{
+			a = t[key].a
+			b = t[key].b
+		}
+	}
+
+	return a, b
+}
+
+func CheckCorrectSymbols(v byte,t []Table) bool{
+
+	for key := range t {
+		if t[key].s == v{
+			return true
+		}
+	}
+
+	return false
+}
+
 func main() {
 	//Open input file for reading
 	inFile, err := os.Open("input.txt")
@@ -98,4 +122,34 @@ func main() {
 		fmt.Println(table[key].a)
 		fmt.Println(table[key].b)
 	}
+
+	// Start reading from begin
+	if _, err = inFile.Seek(0, 0); err != nil {
+		fmt.Fprintf(os.Stderr, "got error while seeking to begining of file: %v\n", err)
+	}
+
+	//Begin compressing
+	log.Println("start to compress")
+	l := float64(0)
+	h := float64(1)
+
+	v,err := r.ReadByte()
+	//nEncode := 10
+	for err == nil{
+		if CheckCorrectSymbols(v, table) != true{
+			fmt.Fprintf(os.Stderr, "couldn't find symbols in the table")
+			return
+		}
+		coder_range := h - l
+		al, bl := FindIntervals(v, table)
+		h = l + bl * coder_range
+		l = l + al * coder_range
+		for{
+
+		}
+		fmt.Println(l)
+		fmt.Println(h)
+		v,err = r.ReadByte()
+	}
+
 }
