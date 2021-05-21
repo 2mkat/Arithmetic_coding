@@ -105,7 +105,7 @@ int main(){
     int count = 0;
     for (iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
 		if (iterator->second != 0){
-            count += 40;
+            ++count;
 		}
     }
 
