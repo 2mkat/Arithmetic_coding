@@ -10,13 +10,13 @@ char temp = 0;
 
 struct Table{
     char s;
-    int numb;
-    int lb;
-    int rb;
+    int n_s;
+    int a;
+    int b;
 };
 
 bool comp(Table l, Table r){
-    return l.numb > r.numb;
+    return l.n_s > r.n_s;
 }
 
 
@@ -81,23 +81,24 @@ int main(){
     }
 
     //create table with intervals
-    std::list<Table> L;
+    std::list<Table> table;
     for(iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
-        Table p;
-        p.s = iterator->first;
-        p.numb = iterator->second;
-        L.push_back(p);
+        Table t;
+        t.s = iterator->first;
+        t.n_s = iterator->second;
+        table.push_back(t);
     }
-    L.sort(comp);
-    L.begin()->rb = L.begin()->numb;
-    L.begin()->lb = 0;
-    std::list<Table>::iterator it = L.begin(), i2;
-    i2 = it;
+
+    table.sort(comp);
+    table.begin()->b = table.begin()->n_s;
+    table.begin()->a = 0;
+    std::list<Table>::iterator it = table.begin(), it2;
+    it2 = it;
     it++;
-    for(; it!=L.end(); it++){
-        it->lb = i2->rb;
-        it->rb = it->lb + it->numb;
-        i2++;
+    for(; it != table.end(); it++){
+        it->a = it2->b;
+        it->b = it->a + it->n_s;
+        it2++;
     }
 
     //get information about symbols
@@ -121,13 +122,13 @@ int main(){
 	file.seekg(0);
 
     // start compress file
-    int idx = 0, denom = L.back().rb, l = 0;
+    int idx = 0, denom = table.back().b, l = 0;
     char temp = 0;
     n_symbols = 0;
 
     while(!file.eof()){
         char c = file.get(); idx++;
-        for(it = L.begin(); it!=L.end(); it++){
+        for(it = table.begin(); it != table.end(); it++){
             if(c == it->s){
                 break;
             }
@@ -137,8 +138,8 @@ int main(){
             break;
         }
         int l2 = l;
-        l = l + it->lb * (h - l + 1) / denom;
-        h = l2 + it->rb * (h - l2 + 1) / denom - 1;
+        l = l + it->a * (h - l + 1) / denom;
+        h = l2 + it->b * (h - l2 + 1) / denom - 1;
         for(;;){    // обрабатываем варианты
             if(h < half){   //переполнение
                 bits_plus_follow(0, n_symbols, res_file);
