@@ -28,6 +28,17 @@ bool comp(Table l, Table r) {
     return l.amount_s > r.amount_s;
 }
 
+void check_symbol(std::list<Table> &table, char c, std::list<Table>::iterator &it) {
+    for(it = table.begin(); it != table.end(); it++){
+        if(c == it->symbol){
+            break;
+        }
+    }
+    if(c != it->symbol){
+        std::cout << "Error!" << '\n';
+    }
+}
+
 std::list<Table> build_table(std::map<char, int> frequencies) {
     std::list<Table> table;
     std::map <char, int>::iterator iterator;
