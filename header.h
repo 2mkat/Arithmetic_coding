@@ -20,6 +20,5 @@ public:
 
 void write_to_file(std::ofstream&, int, std::map<char, int>);
 bool comp(Table, Table);
-int count_symbols(std::map <char, int>);
 std::list<Table> build_table(std::map<char, int> frequencies);
 std::map<char, int> read_from_file(std::ifstream&);
