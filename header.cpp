@@ -28,17 +28,8 @@ bool comp(Table l, Table r) {
     return l.amount_s > r.amount_s;
 }
 
-int count_symbols(std::map <char, int> frequencies) {
-    int count = 0;
-    std::map <char, int>::iterator iterator;
-
-    for (iterator = frequencies.begin(); iterator != frequencies.end(); iterator++){
-        if (iterator->second != 0){
-            ++count;
-        }
-    }
-
-    return count;
+bool find_el(char c, char c2) {
+    return c == c2;
 }
 
 std::list<Table> build_table(std::map<char, int> frequencies) {
@@ -58,10 +49,9 @@ std::list<Table> build_table(std::map<char, int> frequencies) {
     std::list<Table>::iterator it = table.begin(), it2;
     it2 = it;
     it++;
-    for(; it != table.end(); it++){
+    for(; it != table.end(); it++, it2++){
         it->left_edge = it2->right_edge;
         it->right_edge = it->left_edge + it->amount_s;
-        it2++;
     }
 
     return table;
