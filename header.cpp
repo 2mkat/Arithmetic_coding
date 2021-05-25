@@ -28,10 +28,6 @@ bool comp(Table l, Table r) {
     return l.amount_s > r.amount_s;
 }
 
-bool find_el(char c, char c2) {
-    return c == c2;
-}
-
 std::list<Table> build_table(std::map<char, int> frequencies) {
     std::list<Table> table;
     std::map <char, int>::iterator iterator;
