@@ -1,4 +1,4 @@
-     #include <iostream> 
+#include <iostream> 
 #include <vector>
 #include <map>
 #include <list>
@@ -57,15 +57,11 @@ void compress_data(std::ifstream& file,  std::ofstream& res_file, std::list<Tabl
     while(!file.eof()){
         char c = file.get();
 
-        /*it = std::find_if(table.begin(), table.end(), [c](const Table &c1){return c1.symbol == c;});
-        if (it != table.end()) {
-            std::cout << it->symbol << '\n';
-            continue;
-        }
-        else {
+        it = std::find_if(table.begin(), table.end(), [c](const Table &c1){return c1.symbol == c;});
+        if (it == table.end()) {
             std::cout << "Element not found in table\n";
-        }*/
-        check_symbol(table, c, it);
+            break;
+        }
 
         int l2 = low;
         low = low + it->left_edge * (v.high - low + 1) / denom;
